@@ -2,6 +2,10 @@
 # clean base image containing only comfyui, comfy-cli and comfyui-manager
 FROM runpod/worker-comfyui:5.10.0-base
 
+# RunPod starts ComfyUI with /opt/venv/bin/python. Tell comfy-cli and uv to
+# install custom-node dependencies into that same runtime environment.
+ENV VIRTUAL_ENV=/opt/venv
+
 # build-time tokens for gated downloads are read from BuildKit secret
 # mounts — they are never written to a layer or to image history.
 # pass via: docker buildx build --secret id=hf_token,env=HF_TOKEN .
@@ -28,3 +32,13 @@ RUN --mount=type=secret,id=hf_token BACKOFFS="10 20 30 60 90" && for i in 1 2 3 
 
 # user-provided inputs override the auto-generated placeholders above.
 RUN wget --progress=dot:giga -O '/comfyui/input/meow47.jpeg' "https://cool-anteater-319.convex.cloud/api/storage/33818398-8fb6-43a7-872d-2e2fffed2a7f"
+
+
+# Git-cloned nodes bypass comfy-cli's dependency installer. Install every
+# custom-node requirements file into the runtime venv and fail the image build
+# instead of shipping nodes that ComfyUI cannot import.
+RUN set -eux; \
+    for requirements in /comfyui/custom_nodes/*/requirements.txt; do \
+        [ -f "$requirements" ] || continue; \
+        uv pip install --python /opt/venv/bin/python -r "$requirements"; \
+    done
