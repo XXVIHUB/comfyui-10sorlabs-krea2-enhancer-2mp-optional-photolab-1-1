@@ -38,3 +38,8 @@ RUN set -eux; \
         [ -f "$requirements" ] || continue; \
         uv pip install --python /opt/venv/bin/python -r "$requirements"; \
     done
+
+
+# Impact Pack's SAMLoader scans models/sams, not models/ultralytics.
+RUN mkdir -p /comfyui/models/sams \
+    && mv /comfyui/models/ultralytics/sam_vit_b_01ec64.pth /comfyui/models/sams/sam_vit_b_01ec64.pth
