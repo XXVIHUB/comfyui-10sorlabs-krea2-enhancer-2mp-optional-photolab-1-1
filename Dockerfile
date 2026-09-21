@@ -2,10 +2,6 @@
 # clean base image containing only comfyui, comfy-cli and comfyui-manager
 FROM runpod/worker-comfyui:5.10.0-base
 
-# RunPod starts ComfyUI with /opt/venv/bin/python. Tell comfy-cli and uv to
-# install custom-node dependencies into that same runtime environment.
-ENV VIRTUAL_ENV=/opt/venv
-
 # build-time tokens for gated downloads are read from BuildKit secret
 # mounts — they are never written to a layer or to image history.
 # pass via: docker buildx build --secret id=hf_token,env=HF_TOKEN .
